@@ -507,6 +507,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   transition: background var(--transition-fast);
+  color: var(--text-primary);
 }
 
 .spreadsheet__cell--row-num {
