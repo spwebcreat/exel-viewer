@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from 'react';
+// @ts-ignore - The plugin types might not be perfectly resolved in editor but works in build
+import { openPath } from '@tauri-apps/plugin-opener';
 import type { SheetData } from '../types';
 
 interface SpreadsheetViewProps {
@@ -7,6 +9,7 @@ interface SpreadsheetViewProps {
   isMatch: (sheetIndex: number, row: number, col: number) => boolean;
   isCurrentMatch: (sheetIndex: number, row: number, col: number) => boolean;
   currentMatchRow: number | null;
+  filePath: string | null;
 }
 
 export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
@@ -15,6 +18,7 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
   isMatch,
   isCurrentMatch,
   currentMatchRow,
+  filePath,
 }) => {
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -28,8 +32,32 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
     }
   }, [currentMatchRow]);
 
+  const handleOpenExternal = async () => {
+    if (filePath) {
+      try {
+        await openPath(filePath);
+      } catch (err) {
+        console.error('Failed to open file:', err);
+        // Fallback or alert if needed
+      }
+    }
+  };
+
   return (
-    <div className="spreadsheet" ref={tableRef}>
+    <div className="spreadsheet spreadsheet-light-mode" ref={tableRef}>
+      {filePath && (
+        <div className="viewer__header-actions">
+          <button 
+            className="open-external-btn" 
+            onClick={handleOpenExternal} 
+            title="Excelで開く"
+          >
+            <span>Excelで開く</span>
+            <span style={{ fontSize: '10px' }}>↗</span>
+          </button>
+        </div>
+      )}
+
       <table className="spreadsheet__table">
         <thead>
           <tr className="spreadsheet__header-row">

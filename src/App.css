@@ -346,8 +346,57 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  background: var(--bg-primary); /* Default to dark, overridden by class */
   overflow: hidden;
-  background: var(--bg-primary);
+  position: relative;
+}
+
+/* Light Mode Overrides for Spreadsheet */
+.spreadsheet-light-mode {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f1f3f4;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --border-primary: #e5e7eb;
+  --header-bg: #f3f4f6;
+  --cell-selected: rgba(99, 102, 241, 0.1);
+}
+
+.viewer__header-actions {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-lg);
+  z-index: 10;
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.open-external-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #107c41; /* Excel Green */
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.open-external-btn:hover {
+  background: #0b5c30;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.open-external-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .viewer__empty {
@@ -478,6 +527,75 @@ body {
   background: var(--search-current) !important;
   outline: 2px solid var(--warning);
   outline-offset: -1px;
+}
+
+/* File List Tree Style */
+.file-tree-group {
+  margin-bottom: 4px;
+  background: var(--bg-secondary);
+}
+
+.file-tree-header {
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.file-tree-header__icon {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.file-tree-header__count {
+  margin-left: auto;
+  font-weight: normal;
+  opacity: 0.5;
+  font-size: 10px;
+}
+
+.file-tree-items {
+  padding: 2px 0;
+}
+
+.file-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 24px; /* Indent files */
+  cursor: pointer;
+  transition: background 0.1s;
+  border-left: 3px solid transparent;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.file-tree-item:hover {
+  background: var(--bg-hover);
+}
+
+.file-tree-item--active {
+  background: var(--bg-active);
+  border-left-color: var(--accent-primary);
+}
+
+.file-tree-item__icon {
+  font-size: 14px;
+}
+
+.file-tree-item__info {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Loading Spinner */

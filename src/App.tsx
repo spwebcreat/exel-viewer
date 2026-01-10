@@ -207,6 +207,7 @@ function App() {
                 isMatch={search.isMatch}
                 isCurrentMatch={search.isCurrentMatch}
                 currentMatchRow={currentMatchRow}
+                filePath={selectedFilePath}
               />
             </>
           )}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { ExcelFile } from '../types';
 
 interface FileListProps {
@@ -7,17 +7,21 @@ interface FileListProps {
   onFileSelect: (file: ExcelFile) => void;
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export const FileList: React.FC<FileListProps> = ({
   files,
   selectedFile,
   onFileSelect,
 }) => {
+  // Group files by folder name
+  const groupedFiles = useMemo(() => {
+    return files.reduce((acc, file) => {
+      const folder = file.folderName || 'その他';
+      if (!acc[folder]) acc[folder] = [];
+      acc[folder].push(file);
+      return acc;
+    }, {} as Record<string, ExcelFile[]>);
+  }, [files]);
+
   if (files.length === 0) {
     return (
       <div className="no-files">
@@ -27,29 +31,41 @@ export const FileList: React.FC<FileListProps> = ({
     );
   }
 
+  // Sort folder names (make sure 'その他' is last if it exists)
+  const sortedFolders = Object.keys(groupedFiles).sort((a, b) => {
+    if (a === 'その他') return 1;
+    if (b === 'その他') return -1;
+    return a.localeCompare(b, 'ja');
+  });
+
   return (
     <div className="sidebar__list">
-      {files.map((file) => (
-        <div
-          key={file.path}
-          className={`file-item ${selectedFile === file.path ? 'file-item--active' : ''}`}
-          onClick={() => onFileSelect(file)}
-        >
-          <span className="file-item__icon">
-            {file.name.endsWith('.xlsx') ? '📗' : '📘'}
-          </span>
-          <div className="file-item__info">
-            <span className="file-item__name" title={file.name}>
-              {file.name}
+      {sortedFolders.map(folderName => (
+        <div key={folderName} className="file-tree-group">
+          <div className="file-tree-header">
+            <span className="file-tree-header__icon">📂</span>
+            <span>{folderName}</span>
+            <span className="file-tree-header__count">
+              {groupedFiles[folderName].length}
             </span>
-            <div className="file-item__meta">
-              <span className="file-item__size">{formatFileSize(file.size)}</span>
-              {file.folderName && (
-                <span className="file-item__folder" title={file.folderName}>
-                  📂 {file.folderName}
+          </div>
+          
+          <div className="file-tree-items">
+            {groupedFiles[folderName].map(file => (
+              <div
+                key={file.path}
+                className={`file-tree-item ${selectedFile === file.path ? 'file-tree-item--active' : ''}`}
+                onClick={() => onFileSelect(file)}
+                title={file.name}
+              >
+                <span className="file-tree-item__icon">
+                  {file.name.endsWith('.xlsx') ? '📗' : '📘'}
                 </span>
-              )}
-            </div>
+                <span className="file-tree-item__info">
+                  {file.name}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       ))}
