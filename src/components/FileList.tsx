@@ -38,10 +38,19 @@ export const FileList: React.FC<FileListProps> = ({
           <span className="file-item__icon">
             {file.name.endsWith('.xlsx') ? '📗' : '📘'}
           </span>
-          <span className="file-item__name" title={file.name}>
-            {file.name}
-          </span>
-          <span className="file-item__size">{formatFileSize(file.size)}</span>
+          <div className="file-item__info">
+            <span className="file-item__name" title={file.name}>
+              {file.name}
+            </span>
+            <div className="file-item__meta">
+              <span className="file-item__size">{formatFileSize(file.size)}</span>
+              {file.folderName && (
+                <span className="file-item__folder" title={file.folderName}>
+                  📂 {file.folderName}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       ))}
     </div>

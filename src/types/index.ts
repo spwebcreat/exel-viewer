@@ -2,6 +2,7 @@ export interface ExcelFile {
   name: string;
   path: string;
   size: number;
+  folderName?: string;
 }
 
 export interface SheetData {

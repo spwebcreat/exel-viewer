@@ -1,23 +1,26 @@
-import { useState, useEffect, useMemo } from 'react';
-import { open } from '@tauri-apps/plugin-dialog';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { readDir, stat } from '@tauri-apps/plugin-fs';
 import { useExcelParser } from './hooks/useExcelParser';
 import { useSearch } from './hooks/useSearch';
+import { useSettings } from './hooks/useSettings';
 import { SearchBar } from './components/SearchBar';
 import { FileList } from './components/FileList';
 import { SheetTabs } from './components/SheetTabs';
 import { SpreadsheetView } from './components/SpreadsheetView';
+import { FolderManager } from './components/FolderManager';
 import type { ExcelFile } from './types';
 import './App.css';
 
 function App() {
-  const [folderPath, setFolderPath] = useState<string | null>(null);
   const [files, setFiles] = useState<ExcelFile[]>([]);
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
   const [activeSheet, setActiveSheet] = useState(0);
-  const [isLoadingFolder, setIsLoadingFolder] = useState(false);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(false);
 
-  const { workbook, isLoading, error, parseFile, clear } = useExcelParser();
+  // Settings hook handles persistence of folder paths
+  const { folderPaths, addFolder, removeFolder, isLoading: isSettingsLoading } = useSettings();
+
+  const { workbook, isLoading: isParsing, error, parseFile } = useExcelParser();
   const search = useSearch(workbook);
 
   // Auto-switch sheet when search finds match in different sheet
@@ -30,57 +33,72 @@ function App() {
     }
   }, [search.currentMatchIndex, search.matches, activeSheet]);
 
-  const handleSelectFolder = async () => {
+  // Read contents of all registered folders
+  const refreshFiles = useCallback(async () => {
+    if (folderPaths.length === 0) {
+      setFiles([]);
+      return;
+    }
+
+    setIsLoadingFiles(true);
+    const allFiles: ExcelFile[] = [];
+
     try {
-      const selected = await open({
-        directory: true,
-        title: 'Excelファイルがあるフォルダを選択',
-      });
+      for (const folderPath of folderPaths) {
+        try {
+          // Get folder name for display
+          const separator = folderPath.includes('\\') ? '\\' : '/';
+          const parts = folderPath.split(separator).filter(Boolean);
+          const folderName = parts[parts.length - 1] || folderPath;
 
-      if (selected && typeof selected === 'string') {
-        setFolderPath(selected);
-        setIsLoadingFolder(true);
-        setSelectedFilePath(null);
-        clear();
-        search.setQuery('');
+          const entries = await readDir(folderPath);
 
-        // Read directory contents
-        const entries = await readDir(selected);
-        const excelFiles: ExcelFile[] = [];
-
-        for (const entry of entries) {
-          const fileName = entry.name;
-          if (fileName) {
-            const lowerName = fileName.toLowerCase();
-            const isExcel = lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls');
-            const isTempFile = fileName.startsWith('~$');
-            
-            if (isExcel && !isTempFile) {
-              const filePath = `${selected}/${fileName}`;
-              try {
-                const fileStat = await stat(filePath);
-                excelFiles.push({
-                  name: fileName,
-                  path: filePath,
-                  size: fileStat.size,
-                });
-              } catch (statErr) {
-                console.error(`Error getting stat for ${filePath}:`, statErr);
+          for (const entry of entries) {
+            const fileName = entry.name;
+            if (fileName) {
+              const lowerName = fileName.toLowerCase();
+              const isExcel = lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls');
+              const isTempFile = fileName.startsWith('~$');
+              
+              if (isExcel && !isTempFile) {
+                const filePath = `${folderPath}/${fileName}`;
+                try {
+                  const fileStat = await stat(filePath);
+                  allFiles.push({
+                    name: fileName,
+                    path: filePath,
+                    size: fileStat.size,
+                    folderName: folderName,
+                  });
+                } catch {
+                  // Skip files we can't stat
+                }
               }
             }
           }
+        } catch (err) {
+          console.error(`Error reading directory ${folderPath}:`, err);
         }
-
-        // Sort by name
-        excelFiles.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
-        setFiles(excelFiles);
-        setIsLoadingFolder(false);
       }
-    } catch (err) {
-      console.error('Error selecting folder:', err);
-      setIsLoadingFolder(false);
+
+      // Sort by folder name then by file name
+      allFiles.sort((a, b) => {
+        if (a.folderName !== b.folderName) {
+          return (a.folderName || '').localeCompare(b.folderName || '', 'ja');
+        }
+        return a.name.localeCompare(b.name, 'ja');
+      });
+
+      setFiles(allFiles);
+    } finally {
+      setIsLoadingFiles(false);
     }
-  };
+  }, [folderPaths]);
+
+  // Refresh files when folder list changes
+  useEffect(() => {
+    refreshFiles();
+  }, [refreshFiles]);
 
   const handleFileSelect = async (file: ExcelFile) => {
     setSelectedFilePath(file.path);
@@ -127,19 +145,15 @@ function App() {
       <main className="main">
         {/* Sidebar */}
         <aside className="sidebar">
-          <div className="sidebar__header">
-            <button className="sidebar__folder-btn" onClick={handleSelectFolder}>
-              📁 フォルダを選択
-            </button>
-          </div>
+          {/* Folder Manager Section */}
+          <FolderManager 
+            folderPaths={folderPaths}
+            onAddFolder={addFolder}
+            onRemoveFolder={removeFolder}
+          />
           
-          {folderPath && (
-            <div className="sidebar__path" title={folderPath}>
-              {folderPath}
-            </div>
-          )}
-
-          {isLoadingFolder ? (
+          {/* File List Section */}
+          {isLoadingFiles || isSettingsLoading ? (
             <div className="loading">
               <div className="loading__spinner" />
               <span>読み込み中...</span>
@@ -155,18 +169,18 @@ function App() {
 
         {/* Viewer */}
         <section className="viewer">
-          {!workbook && !isLoading && !error && (
+          {!workbook && !isParsing && !error && (
             <div className="viewer__empty">
               <span className="viewer__empty-icon">📋</span>
               <span className="viewer__empty-text">
-                {folderPath
+                {folderPaths.length > 0
                   ? 'ファイルを選択してプレビュー'
-                  : 'フォルダを選択してください'}
+                  : '左上の「+ 追加」から監視フォルダを追加してください'}
               </span>
             </div>
           )}
 
-          {isLoading && (
+          {isParsing && (
             <div className="loading">
               <div className="loading__spinner" />
               <span>ファイルを読み込み中...</span>
