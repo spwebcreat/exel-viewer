@@ -1,7 +1,44 @@
-# Tauri + React + Typescript
+# Excel Quick Viewer 📊
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Excelファイルをアプリで開かなくても、中身をサクサク確認できる軽量ビューアアプリです。
+クライアントとの電話中など、「今すぐ内容を確認したい」というシーンに最適です。
 
-## Recommended IDE Setup
+![アプリ画面](docs/images/screenshot.png)
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## ✨ 特徴
+
+- **高速プレビュー**: 重たいExcel本体を起動することなく、一瞬で中身を確認できます。
+- **ドラッグ不要**: フォルダを選択するだけで、左側のリストから次々とファイルを切り替えられます。
+- **新旧形式対応**: `.xlsx` (現在の形式) だけでなく、古い `.xls` 形式にも対応しています。
+- **検索機能**: ファイル内をキーワードで検索し、該当箇所をハイライト表示します。
+- **Mac / Windows 対応**: どちらのOSでも同じように快適に使用できます。
+
+## 📥 インストール方法
+
+右側の [Releases](https://github.com/spwebcreat/exel-viewer/releases) ページから最新版をダウンロードしてください。
+
+### Windowsの方
+1. `Excel-Quick-Viewer_x.x.x_x64_en-US.msi` (または `.exe`) をダウンロードします。
+2. ファイルをダブルクリックしてインストーラーを起動し、画面の指示に従ってインストールしてください。
+   - ※ セキュリティ警告が出る場合がありますが、「詳細情報」→「実行」を選択して進めてください（署名未登録のため）。
+
+### Macの方
+1. `Excel Quick Viewer_x.x.x_aarch64.dmg` (M1/M2/M3 Mac用) または `_x64.dmg` (Intel Mac用) をダウンロードします。
+2. ファイルを開き、アイコンをApplicationsフォルダにドラッグしてインストールしてください。
+
+## 🚀 使い方
+
+1. **アプリを起動**: `Excel Quick Viewer` アイコンをクリックして起動します。
+2. **フォルダ選択**: 左上の「📁 フォルダを選択」ボタンを押し、Excelファイルが入っているフォルダを選びます。
+3. **ファイル閲覧**: 左サイドバーにファイル一覧が表示されます。クリックすると右側にプレビューが表示されます。
+4. **シート切替**: 画面上部のタブをクリックしてシートを切り替えます。
+5. **検索**: 右上の検索バーに文字を入力すると、該当するセルが黄色くハイライトされます。`Enter` キーで次の該当箇所へ移動します。
+
+## 🛠️ 技術仕様
+
+- **Framework**: Tauri 2.0 (Rust)
+- **Frontend**: React + TypeScript
+- **Engine**: WebView (OSネイティブの描画エンジンを使用し、超軽量・高速動作を実現)
+
+---
+Developed by [Your Name / Company Name]
