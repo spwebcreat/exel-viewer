@@ -41,6 +41,28 @@ export function useExcelParser(): UseExcelParserReturn {
           headers.push(XLSX.utils.encode_col(c));
         }
         
+        // Extract column widths
+        const colWidths: number[] = [];
+        const cols = worksheet['!cols'];
+        if (cols) {
+          for (let c = 0; c <= maxCol; c++) {
+            const colInfo = cols[c];
+            // wpx: width in pixels, wch: width in characters (approx 7px per char)
+            let width = 80; // default width
+            if (colInfo) {
+              if (colInfo.wpx) width = colInfo.wpx;
+              else if (colInfo.wch) width = colInfo.wch * 7.5; // Approximation
+              else if (colInfo.width) width = colInfo.width * 7.5;
+            }
+            colWidths.push(width);
+          }
+        } else {
+          // Default widths if no info available
+          for (let c = 0; c <= maxCol; c++) {
+            colWidths.push(80);
+          }
+        }
+
         // Extract data
         const data: CellValue[][] = [];
         for (let r = 0; r <= maxRow; r++) {
@@ -75,6 +97,7 @@ export function useExcelParser(): UseExcelParserReturn {
           name: sheetName,
           data,
           headers,
+          colWidths,
         };
       });
 

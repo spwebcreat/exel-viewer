@@ -364,6 +364,34 @@ body {
   --cell-selected: rgba(99, 102, 241, 0.1);
 }
 
+/* Excel-like improvements */
+.spreadsheet-light-mode .spreadsheet__table {
+  font-family: "Calibri", "Yu Gothic UI", "Meiryo UI", sans-serif;
+  font-size: 13.5px; /* Closer to Excel's 11pt */
+  border-collapse: separate; /* Required for sticky headers borders to work better */
+  border-spacing: 0;
+}
+
+.spreadsheet-light-mode .spreadsheet__cell {
+  padding: 2px 4px; /* Tighter padding like Excel */
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  border-left: none;
+  border-top: none;
+  max-width: none; /* Let colgroup define width */
+}
+
+.spreadsheet-light-mode .spreadsheet__header-cell {
+  background: #f8f9fa;
+  border-right: 1px solid #c0c0c0;
+  border-bottom: 1px solid #c0c0c0;
+  border-top: none;
+  border-left: none;
+  font-weight: normal;
+  color: #333;
+  padding: 2px 4px;
+}
+
 .viewer__header-actions {
   position: absolute;
   top: var(--spacing-sm);
@@ -462,6 +490,7 @@ body {
   font-size: 12px;
   width: max-content;
   min-width: 100%;
+  table-layout: fixed; /* Respect colgroup widths */
 }
 
 .spreadsheet__header-row {

@@ -59,6 +59,12 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
       )}
 
       <table className="spreadsheet__table">
+        <colgroup>
+          <col style={{ width: '50px' }} /> {/* Row number column */}
+          {sheet.colWidths?.map((width, index) => (
+            <col key={index} style={{ width: `${width}px` }} />
+          ))}
+        </colgroup>
         <thead>
           <tr className="spreadsheet__header-row">
             <th className="spreadsheet__header-cell spreadsheet__header-cell--row-num">#</th>
