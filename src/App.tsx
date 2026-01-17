@@ -44,7 +44,8 @@ function App() {
     const allFiles: ExcelFile[] = [];
 
     try {
-      for (const folderPath of folderPaths) {
+      // Process folders in parallel
+      await Promise.all(folderPaths.map(async (folderPath) => {
         try {
           // Get folder name for display
           const separator = folderPath.includes('\\') ? '\\' : '/';
@@ -53,33 +54,39 @@ function App() {
 
           const entries = await readDir(folderPath);
 
-          for (const entry of entries) {
+          // Process files in parallel
+          const filePromises = entries.map(async (entry) => {
             const fileName = entry.name;
-            if (fileName) {
-              const lowerName = fileName.toLowerCase();
-              const isExcel = lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls');
-              const isTempFile = fileName.startsWith('~$');
-              
-              if (isExcel && !isTempFile) {
-                const filePath = `${folderPath}/${fileName}`;
-                try {
-                  const fileStat = await stat(filePath);
-                  allFiles.push({
-                    name: fileName,
-                    path: filePath,
-                    size: fileStat.size,
-                    folderName: folderName,
-                  });
-                } catch {
-                  // Skip files we can't stat
-                }
+            if (!fileName) return null;
+
+            const lowerName = fileName.toLowerCase();
+            const isExcel = lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls');
+            const isTempFile = fileName.startsWith('~$');
+            
+            if (isExcel && !isTempFile) {
+              const filePath = `${folderPath}/${fileName}`;
+              try {
+                const fileStat = await stat(filePath);
+                return {
+                  name: fileName,
+                  path: filePath,
+                  size: fileStat.size,
+                  folderName: folderName,
+                } as ExcelFile;
+              } catch {
+                return null;
               }
             }
-          }
+            return null;
+          });
+
+          const folderFiles = (await Promise.all(filePromises)).filter((f): f is ExcelFile => f !== null);
+          allFiles.push(...folderFiles);
+          
         } catch (err) {
           console.error(`Error reading directory ${folderPath}:`, err);
         }
-      }
+      }));
 
       // Sort by folder name then by file name
       allFiles.sort((a, b) => {
@@ -150,6 +157,7 @@ function App() {
             folderPaths={folderPaths}
             onAddFolder={addFolder}
             onRemoveFolder={removeFolder}
+            onRefresh={refreshFiles}
           />
           
           {/* File List Section */}

@@ -5,12 +5,14 @@ interface FolderManagerProps {
   folderPaths: string[];
   onAddFolder: (path: string) => void;
   onRemoveFolder: (path: string) => void;
+  onRefresh?: () => void;
 }
 
 export const FolderManager: React.FC<FolderManagerProps> = ({
   folderPaths,
   onAddFolder,
-  onRemoveFolder
+  onRemoveFolder,
+  onRefresh
 }) => {
   const handleAddClick = async () => {
     try {
@@ -41,13 +43,24 @@ export const FolderManager: React.FC<FolderManagerProps> = ({
       <div className="sidebar__header p-0 border-b-0">
         <div className="flex items-center justify-between w-full">
           <span className="text-sm font-semibold text-text-secondary">監視フォルダ</span>
-          <button 
-            className="folder-add-btn"
-            onClick={handleAddClick}
-            title="フォルダを追加"
-          >
-            + 追加
-          </button>
+          <div className="flex items-center gap-1">
+            {onRefresh && (
+              <button
+                className="folder-refresh-btn"
+                onClick={onRefresh}
+                title="フォルダ情報を更新"
+              >
+                ↻
+              </button>
+            )}
+            <button 
+              className="folder-add-btn"
+              onClick={handleAddClick}
+              title="フォルダを追加"
+            >
+              + 追加
+            </button>
+          </div>
         </div>
       </div>
       
