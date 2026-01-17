@@ -416,6 +416,13 @@ body {
   padding: 2px 4px;
 }
 
+/* Light mode hover effect */
+.spreadsheet-light-mode .spreadsheet__row:hover .spreadsheet__cell {
+  background: #e8eaed; /* Light gray for hover */
+  color: #000;
+}
+
+
 .viewer__header-actions {
   position: absolute;
   top: var(--spacing-sm);

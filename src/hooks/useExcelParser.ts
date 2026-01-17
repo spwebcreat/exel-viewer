@@ -25,7 +25,8 @@ export function useExcelParser(): UseExcelParserReturn {
       const fileData = await readFile(filePath);
       
       // Parse with SheetJS
-      const wb = XLSX.read(fileData, { type: 'array' });
+      // cellDates: true ensures dates are parsed as Date objects instead of serial numbers
+      const wb = XLSX.read(fileData, { type: 'array', cellDates: true });
 
       const sheets: SheetData[] = wb.SheetNames.map((sheetName) => {
         const worksheet = wb.Sheets[sheetName];
@@ -72,8 +73,19 @@ export function useExcelParser(): UseExcelParserReturn {
             const cell = worksheet[cellAddress];
             
             if (cell) {
-              // Use formatted value if available, otherwise raw value
-              row.push(cell.w !== undefined ? cell.w : cell.v);
+              // Create readable date format yyyy-mm-dd
+              if (cell.v instanceof Date) {
+                const date = cell.v;
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                row.push(`${year}-${month}-${day}`);
+              } else {
+                // Use formatted value for other types if available, otherwise raw value
+                // Avoid using .w for numbers if it's generic, but use it if it's formatted (like currency)
+                // For simplicity, prefer .w if exists string representation
+                row.push(cell.w !== undefined ? cell.w : cell.v);
+              }
             } else {
               row.push(null);
             }
@@ -87,6 +99,7 @@ export function useExcelParser(): UseExcelParserReturn {
             data.push(row);
           }
         }
+
         
         // Remove trailing empty rows
         while (data.length > 0 && data[data.length - 1].every(cell => cell === null)) {
